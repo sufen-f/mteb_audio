@@ -28,6 +28,7 @@ class WhisperWrapper(AudioEncoder):
     def get_audio_embeddings(self,
                              audio_files: list[Audio] | Audio,
                              batch_size: int = 32,
+                             hidden_layer: int = -1,
                              **kwargs) -> np.ndarray:
         if not isinstance(audio_files, list):
             audio_files = [audio_files]
@@ -51,14 +52,26 @@ class WhisperWrapper(AudioEncoder):
                 inputs = {k: v.to(self.device) for k, v in inputs.items()}
 
             with torch.no_grad():
-                encoder_outputs = self.model.encoder(inputs.input_features)
+                encoder_outputs = self.model.encoder(
+                    inputs.input_features,
+                    output_hidden_states=True
+                )
 
-            embeddings = encoder_outputs.last_hidden_state
+            print(f"Number of hidden states {len(encoder_outputs.hidden_states)}")
+            embeddings = encoder_outputs.hidden_states[hidden_layer]
             batch_embeddings = embeddings.mean(dim=1).cpu().numpy()
             print(batch_embeddings.shape)
             all_embeddings.append(batch_embeddings)
 
         return np.vstack(all_embeddings)
+
+    def encode(self,
+               audio_files: list[Audio],
+               *,
+               task_name: str,
+               prompt_type: PromptType | None = None,
+               **kwargs) -> np.ndarray:
+        return self.get_audio_embeddings(audio_files, **kwargs)
 
     def encode(self,
                audio_files: list[Audio],

@@ -36,6 +36,7 @@ class WavlmWrapper(AudioEncoder):
         self, 
         audio_files: list[Audio] | Audio, 
         batch_size: int = 32,
+        hidden_layer: int = -1,
         **kwargs
     ) -> np.ndarray:
         
@@ -70,7 +71,7 @@ class WavlmWrapper(AudioEncoder):
                     return_dict=True
                 )
 
-            hidden_states = outputs.hidden_states[-1]
+            hidden_states = outputs.hidden_states[hidden_layer]
             batch_embeddings = hidden_states.mean(dim=1).cpu().numpy()
             all_embeddings.append(batch_embeddings)
             

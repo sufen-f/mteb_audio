@@ -25,6 +25,7 @@ class AudioClusteringEvaluator(Evaluator):
         task_name: str | None = None,
         clustering_batch_size: int = 500,
         limit: int | None = None,
+        pca_n_components: int | None = None,
         cluster_algo: str = "KMeans",
         **kwargs,
     ):
@@ -32,6 +33,9 @@ class AudioClusteringEvaluator(Evaluator):
         if limit is not None:
             audio = audio[:limit]
             labels = labels[:limit]
+        
+        if pca_n_components is not None:
+            self.pca_n_components = pca_n_components
             
         random.seed(42)
         combined = list(zip(audio, labels))
@@ -68,12 +72,16 @@ class AudioClusteringEvaluator(Evaluator):
         audio_embeddings = model.get_audio_embeddings(
             self.audio,
             batch_size=encode_kwargs["batch_size"],
+            hidden_layer=encode_kwargs.get("hidden_layer", -1),
+            
         )
 
         logger.info("Fitting Mini-Batch K-Means model...")
         
-        pca = PCA(n_components=200)
-        audio_embeddings = pca.fit_transform(audio_embeddings)
+        if self.pca_n_components is not None:
+            pca = PCA(n_components=self.pca_n_components)
+            print("done",self.pca_n_components)
+            audio_embeddings = pca.fit_transform(audio_embeddings)
 
         clustering_output = self.__clustering__()
         clustering_output.fit(audio_embeddings)

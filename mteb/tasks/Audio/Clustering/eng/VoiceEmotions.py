@@ -72,7 +72,9 @@ if __name__ == "__main__":
     print(f"Loaded model type: {type(model)}")
     evaluation = mteb.MTEB(tasks=[CREMADEmotionClustering()])
     cluster_algo = "Kmeans"
-    results = evaluation.run(model, output_folder=f"results_Emotions/{cluster_algo}/{model_name}", overwrite_results=True, cluster_algo=cluster_algo, limit=224)
+    pca_n_components = 50
+    encode_kwarg = {"hidden_layer": 6}
+    results = evaluation.run(model, output_folder=f"results_Emotions/{cluster_algo}/{pca_n_components}/{model_name}", overwrite_results=True, cluster_algo=cluster_algo, limit=100,pca_n_components=pca_n_components,encode_kwargs=encode_kwarg)
     print(results)
 
 

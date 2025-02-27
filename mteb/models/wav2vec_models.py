@@ -38,6 +38,7 @@ class Wav2vec2Wrapper(AudioEncoder):
             self,
             audio_files: list[Audio] | Audio,
             batch_size: int = 32,
+            hidden_layer: int = -1,
             **kwargs
     ) -> np.ndarray:
 
@@ -70,8 +71,8 @@ class Wav2vec2Wrapper(AudioEncoder):
                     output_hidden_states=True,
                     return_dict=True
                 )
-
-            hidden_states = outputs.hidden_states[6]
+            print(hidden_layer)
+            hidden_states = outputs.hidden_states[hidden_layer]
             print(hidden_states.shape)
             batch_embeddings = hidden_states.mean(dim=1).cpu().numpy()
             all_embeddings.append(batch_embeddings)
@@ -86,7 +87,6 @@ class Wav2vec2Wrapper(AudioEncoder):
             prompt_type: PromptType | None = None,
             **kwargs
     ) -> np.ndarray:
-
         return self.get_audio_embeddings(audio_files, **kwargs)
 
 

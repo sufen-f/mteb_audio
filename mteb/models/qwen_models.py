@@ -8,6 +8,16 @@ from transformers import AutoFeatureExtractor, Qwen2AudioForConditionalGeneratio
 from mteb.model_meta import ModelMeta
 from datasets import Audio
 
+from functools import partial
+from mteb.models.wrapper import Wrapper
+from mteb.encoder_interface import PromptType, AudioEncoder
+import numpy as np
+import torch
+import librosa
+from transformers import AutoFeatureExtractor, Qwen2AudioForConditionalGeneration, AutoProcessor
+from mteb.model_meta import ModelMeta
+from datasets import Audio
+
 class Qwen2AudioWrapper(AudioEncoder):
     def __init__(self, model_name: str, device: str | None = None, **kwargs):
         super().__init__(device=device, **kwargs)
@@ -27,7 +37,7 @@ class Qwen2AudioWrapper(AudioEncoder):
         self.audio_encoder = self.audio_encoder.to(self.device)
         print("Qwen2-Audio initialized. Hiden dim:", self.embed_dim)
 
-    def get_audio_embeddings(self, audio_files: list[Audio] | Audio, batch_size: int = 32, **kwargs) -> np.ndarray:
+    def get_audio_embeddings(self, audio_files: list[Audio] | Audio, batch_size: int = 32, hidden_layer: int = -1, **kwargs) -> np.ndarray:
         if not isinstance(audio_files, list):
             audio_files = [audio_files]
         all_embeds = []
@@ -46,9 +56,11 @@ class Qwen2AudioWrapper(AudioEncoder):
 
             input_features = inputs.input_features.to(self.device)
             with torch.no_grad():
-                outputs = self.audio_encoder(input_features=input_features)
+                outputs = self.audio_encoder(input_features=input_features, output_hidden_states=True)
 
-            embeds = outputs.last_hidden_state.mean(dim=1)
+            print(f"Number of hidden layers: {len(outputs.hidden_states)}")
+            hidden_states = outputs.hidden_states[hidden_layer]
+            embeds = hidden_states.mean(dim=1)
             print(embeds.shape)
             all_embeds.append(embeds.cpu().numpy())
 
