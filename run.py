@@ -3,12 +3,12 @@ from mteb.tasks.Audio.Clustering.eng.VoiceGender import VoiceGenderClustering
 from mteb.tasks.Audio.Clustering.eng.VoiceEmotions import CREMADEmotionClustering
 import itertools
 
-model_names = ["microsoft/wavlm-base", "facebook/wav2vec2-base"]
+model_names = ["facebook/wav2vec2-base"]
 
-cluster_algos = ["Kmeans", "DBSCAN", "Agg"]
-pca_n_components_values = [5, 10, 15]
-encode_hidden_layers = [2, 4, 6]
-dataset_sizes = [10, 50, 100]
+cluster_algos = ["Kmeans"]
+pca_n_components_values = [5]
+encode_hidden_layers = [-1]
+dataset_sizes = [10]
 
 for model_name in model_names:
     model = mteb.get_model(model_name)
