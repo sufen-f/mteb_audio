@@ -70,5 +70,5 @@ class AudioClusteringEvaluator(Evaluator):
             "v_measure": v_measure,
             "nmi": nmi,
             "ari": ari,
-            "cluster_accuracy": clustering_accuracy,
+            "clustering_accuracy": clustering_accuracy,
         }
