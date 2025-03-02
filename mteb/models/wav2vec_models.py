@@ -13,7 +13,7 @@ class Wav2vec2Wrapper(AudioEncoder):
             self,
             model_name: str,
             # revision: str,
-            device: str | None = None,
+            device: str | None = 'cuda',
             **kwargs
     ):
         super().__init__(device=device, **kwargs)
@@ -32,6 +32,7 @@ class Wav2vec2Wrapper(AudioEncoder):
 
         if device:
             self.model = self.model.to(device)
+            self.device =device
         print("Wav2vec initialized.")
 
     def get_audio_embeddings(

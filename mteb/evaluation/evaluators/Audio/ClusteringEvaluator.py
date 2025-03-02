@@ -30,17 +30,17 @@ class AudioClusteringEvaluator(Evaluator):
         **kwargs,
     ):
         super().__init__(**kwargs)
-        if limit is not None:
-            audio = audio[:limit]
-            labels = labels[:limit]
-
         self.pca_n_components = pca_n_components
             
         random.seed(42)
         combined = list(zip(audio, labels))
         random.shuffle(combined)
         audio, labels = map(list, zip(*combined))
-        
+
+        if limit is not None:
+            audio = audio[:limit]
+            labels = labels[:limit]
+
         self.audio = audio
         self.labels = labels
         self.clustering_batch_size = clustering_batch_size
