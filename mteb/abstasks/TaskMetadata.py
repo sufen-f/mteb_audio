@@ -61,6 +61,8 @@ TASK_SUBTYPE = Literal[
     "Duplicate Detection",
     "Voice Gender Clustering",
     "Voice Emotion Clustering",
+    "Voice Emotion Classification",
+    "Voice Gender Classification",
 ]
 
 TASK_DOMAIN = Literal[
@@ -104,6 +106,7 @@ SAMPLE_CREATION_METHOD = Literal[
 ]
 TASK_TYPE = Literal[
     "AudioClustering",
+    "AudioClassification",
     "BitextMining",
     "Classification",
     "MultilabelClassification",
