@@ -34,8 +34,8 @@ class AudioClusteringEvaluator(Evaluator):
             audio = audio[:limit]
             labels = labels[:limit]
         
-        if pca_n_components is not None:
-            self.pca_n_components = pca_n_components
+       
+        self.pca_n_components = pca_n_components
             
         random.seed(42)
         combined = list(zip(audio, labels))

@@ -38,10 +38,10 @@ class Wav2vec2Wrapper(AudioEncoder):
             self,
             audio_files: list[Audio] | Audio,
             batch_size: int = 32,
-            hidden_layer: int = -1,
             **kwargs
     ) -> np.ndarray:
 
+        layer_percent = kwargs.get('hidden_layer')
         if not isinstance(audio_files, list):
             audio_files = [audio_files]
 
@@ -71,9 +71,14 @@ class Wav2vec2Wrapper(AudioEncoder):
                     output_hidden_states=True,
                     return_dict=True
                 )
-            print(hidden_layer)
-            hidden_states = outputs.hidden_states[hidden_layer]
-            print(hidden_states.shape)
+            
+            no_hidden_states = len(outputs.hidden_states)
+            # print("No of layers:", no_hidden_states)
+            layer = int(layer_percent * no_hidden_states)
+            # print(f"Using layer: {layer}")
+
+            hidden_states = outputs.hidden_states[layer-1]
+            # print(hidden_states.shape)
             batch_embeddings = hidden_states.mean(dim=1).cpu().numpy()
             all_embeddings.append(batch_embeddings)
 

@@ -33,14 +33,14 @@ class WavlmWrapper(AudioEncoder):
         print("WavLM initialized.")
         
     def get_audio_embeddings(
-        self, 
-        audio_files: list[Audio] | Audio, 
-        batch_size: int = 32,
-        hidden_layer: int = -1,
-        **kwargs
+            self,
+            audio_files: list[Audio] | Audio,
+            batch_size: int = 32,
+            **kwargs
     ) -> np.ndarray:
         
-        
+        layer_percent = kwargs.get('hidden_layer')
+
         if not isinstance(audio_files, list):
             audio_files = [audio_files]
             
@@ -71,7 +71,12 @@ class WavlmWrapper(AudioEncoder):
                     return_dict=True
                 )
 
-            hidden_states = outputs.hidden_states[hidden_layer]
+            no_hidden_states = len(outputs.hidden_states)
+            print("No of layers:", no_hidden_states)
+            layer = int(layer_percent * no_hidden_states)
+            print(f"Using layer: {layer}")
+
+            hidden_states = outputs.hidden_states[layer-1]
             batch_embeddings = hidden_states.mean(dim=1).cpu().numpy()
             all_embeddings.append(batch_embeddings)
             

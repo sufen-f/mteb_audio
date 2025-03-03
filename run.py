@@ -2,34 +2,59 @@ import mteb
 from mteb.tasks.Audio.Clustering.eng.VoiceGender import VoiceGenderClustering
 from mteb.tasks.Audio.Clustering.eng.VoiceEmotions import CREMADEmotionClustering
 import itertools
+from tqdm import tqdm
 
-model_names = ["facebook/wav2vec2-base"]
+model_names = [
+    "facebook/wav2vec2-base",
+    "facebook/wav2vec2-base-960h",
+    "facebook/wav2vec2-large",
+    "facebook/wav2vec2-large-xlsr-53",
+    "facebook/wav2vec2-lv-60-espeak-cv-ft",
+]
 
-cluster_algos = ["Kmeans"]
-pca_n_components_values = [5]
-encode_hidden_layers = [-1]
-dataset_sizes = [10]
+# model_names = [
+#     "microsoft/wavlm-large",
+#     "microsoft/wavlm-base-plus-sd",
+#     "microsoft/wavlm-base-plus-sv",
+#     "microsoft/wavlm-base-sd",
+#     "microsoft/wavlm-base-sv",
+#     "microsoft/wavlm-base-plus",
+#     "microsoft/wavlm-base"
+# ]
 
-for model_name in model_names:
-    model = mteb.get_model(model_name)
-    print(f"Loaded model: {model_name} (Type: {type(model)})")
+# cluster_algos = ["Kmeans", "DBSCAN", "Agg"]
+cluster_algos = ["Kmeans", "Agg"]
 
-    evaluation = mteb.MTEB(tasks=[CREMADEmotionClustering()])
+pca_n_components_values = [200, None]
+encode_hidden_layers = [0.25, 0.5, 1]
+dataset_sizes = [512, 1024, 2048]
+tasks = [[CREMADEmotionClustering()], [VoiceGenderClustering()]]
+tasks_name = ['emotion_cluster', 'gender_cluster']
 
-    for cluster_algo, pca_n_components, hidden_layer, dataset_size in itertools.product(
-            cluster_algos, pca_n_components_values, encode_hidden_layers, dataset_sizes):
-        
-        encode_kwarg = {"hidden_layer": hidden_layer}
+for i in range(len(tasks)):
+    task = tasks[i]
+    for model_name in model_names:
+        model = mteb.get_model(model_name)
+        print(f"Loaded model: {model_name} (Type: {type(model)})")
 
-        results = evaluation.run(
-            model,
-            output_folder=f"results_gender/{model_name}/{cluster_algo}/{dataset_size}/{pca_n_components}/{hidden_layer}",
-            overwrite_results=True,
-            cluster_algo=cluster_algo,
-            limit=dataset_size,
-            pca_n_components=pca_n_components,
-            encode_kwargs=encode_kwarg
-        )
-        
-        print(f"results for Model={model_name}, Cluster={cluster_algo}, PCA={pca_n_components}, Hidden Layer={hidden_layer}, Dataset Size={dataset_size}:")
-        print(results)
+        evaluation = mteb.MTEB(tasks=task)
+
+        for cluster_algo, pca_n_components, hidden_layer, dataset_size in tqdm(
+                itertools.product(cluster_algos, pca_n_components_values, encode_hidden_layers, dataset_sizes), 
+                total=len(cluster_algos) * len(pca_n_components_values) * len(encode_hidden_layers) * len(dataset_sizes)):
+    
+            
+            print(f"results for Model={model_name}, Cluster={cluster_algo}, PCA={pca_n_components}, Hidden Layer={hidden_layer}, Dataset Size={dataset_size}:")
+
+            encode_kwarg = {"hidden_layer": hidden_layer}
+
+            results = evaluation.run(
+                model,
+                output_folder=f"results_{tasks_name[i]}/{model_name}/{cluster_algo}/{dataset_size}/{pca_n_components}/{hidden_layer}",
+                cluster_algo=cluster_algo,
+                limit=dataset_size,
+                pca_n_components=pca_n_components,
+                encode_kwargs=encode_kwarg
+            )
+            
+            print(results)

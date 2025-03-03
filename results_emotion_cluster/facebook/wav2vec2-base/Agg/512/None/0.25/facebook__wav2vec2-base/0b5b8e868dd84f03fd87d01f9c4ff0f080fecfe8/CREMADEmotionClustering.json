@@ -1,0 +1,23 @@
+{
+  "dataset_revision": "main",
+  "task_name": "CREMADEmotionClustering",
+  "mteb_version": "1.34.28",
+  "scores": {
+    "train": [
+      {
+        "v_measure": 0.062947,
+        "nmi": 0.062947,
+        "ari": 0.006484,
+        "cluster_accuracy": 0.226562,
+        "silhouette": 0.103672,
+        "main_score": 0.062947,
+        "hf_subset": "default",
+        "languages": [
+          "eng-Latn"
+        ]
+      }
+    ]
+  },
+  "evaluation_time": 74.29158616065979,
+  "kg_co2_emissions": null
+}
