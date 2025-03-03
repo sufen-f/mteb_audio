@@ -48,12 +48,12 @@ class Wav2vec2Wrapper(AudioEncoder):
 
         all_embeddings = []
 
-        for i in range(0, len(audio_files), batch_size):
+        for i in range(0, len(audio_files), 1):
             batch = audio_files[i:i + batch_size]
 
             audio_data = [file['array'] for file in batch]
             sampling_rates = [file['sampling_rate'] for file in batch]
-
+            # print(audio_data.shape)
             # Preprocess batch
             inputs = self.feature_extractor(
                 audio_data,

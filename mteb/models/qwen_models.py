@@ -37,7 +37,14 @@ class Qwen2AudioWrapper(AudioEncoder):
         self.audio_encoder = self.audio_encoder.to(self.device)
         print("Qwen2-Audio initialized. Hiden dim:", self.embed_dim)
 
-    def get_audio_embeddings(self, audio_files: list[Audio] | Audio, batch_size: int = 32, hidden_layer: int = -1, **kwargs) -> np.ndarray:
+    def get_audio_embeddings(
+            self,
+            audio_files: list[Audio] | Audio,
+            batch_size: int = 32,
+            **kwargs
+    ) -> np.ndarray:
+        layer_percent = kwargs.get('hidden_layer')
+
         if not isinstance(audio_files, list):
             audio_files = [audio_files]
         all_embeds = []
@@ -58,8 +65,12 @@ class Qwen2AudioWrapper(AudioEncoder):
             with torch.no_grad():
                 outputs = self.audio_encoder(input_features=input_features, output_hidden_states=True)
 
-            print(f"Number of hidden layers: {len(outputs.hidden_states)}")
-            hidden_states = outputs.hidden_states[hidden_layer]
+            no_hidden_states = len(outputs.hidden_states)
+            print("No of layers:", no_hidden_states)
+            layer = int(layer_percent * no_hidden_states)
+            print(f"Using layer: {layer}")
+
+            hidden_states = outputs.hidden_states[layer-1]
             embeds = hidden_states.mean(dim=1)
             print(embeds.shape)
             all_embeds.append(embeds.cpu().numpy())

@@ -1,0 +1,23 @@
+{
+  "dataset_revision": "main",
+  "task_name": "VoiceGenderClustering",
+  "mteb_version": "1.34.28",
+  "scores": {
+    "train": [
+      {
+        "v_measure": 0.007225,
+        "nmi": 0.007225,
+        "ari": -0.000443,
+        "cluster_accuracy": 0.511719,
+        "silhouette": 0.844853,
+        "main_score": 0.007225,
+        "hf_subset": "default",
+        "languages": [
+          "eng-Latn"
+        ]
+      }
+    ]
+  },
+  "evaluation_time": 20.156388759613037,
+  "kg_co2_emissions": null
+}

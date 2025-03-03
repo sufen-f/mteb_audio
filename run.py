@@ -10,17 +10,21 @@ model_names = [
     "facebook/wav2vec2-large",
     "facebook/wav2vec2-large-xlsr-53",
     "facebook/wav2vec2-lv-60-espeak-cv-ft",
+    "microsoft/wavlm-large",
+    "microsoft/wavlm-base-plus-sd",
+    "microsoft/wavlm-base-plus-sv",
+    "microsoft/wavlm-base-sd",
+    "microsoft/wavlm-base-sv",
+    "microsoft/wavlm-base-plus",
+    "microsoft/wavlm-base",
+    "openai/whisper-large-v3",
+    "openai/whisper-medium",
+    "openai/whisper-tiny",
+    "openai/whisper-base",
+    "openai/whisper-small",
+    "Qwen/Qwen2-Audio-7B"
 ]
 
-# model_names = [
-#     "microsoft/wavlm-large",
-#     "microsoft/wavlm-base-plus-sd",
-#     "microsoft/wavlm-base-plus-sv",
-#     "microsoft/wavlm-base-sd",
-#     "microsoft/wavlm-base-sv",
-#     "microsoft/wavlm-base-plus",
-#     "microsoft/wavlm-base"
-# ]
 
 # cluster_algos = ["Kmeans", "DBSCAN", "Agg"]
 cluster_algos = ["Kmeans", "Agg"]
@@ -47,14 +51,19 @@ for i in range(len(tasks)):
             print(f"results for Model={model_name}, Cluster={cluster_algo}, PCA={pca_n_components}, Hidden Layer={hidden_layer}, Dataset Size={dataset_size}:")
 
             encode_kwarg = {"hidden_layer": hidden_layer}
+            try:
+                results = evaluation.run(
+                    model,
+                    output_folder=f"results_{tasks_name[i]}/{model_name}/{cluster_algo}/{dataset_size}/{pca_n_components}/{hidden_layer}",
+                    cluster_algo=cluster_algo,
+                    limit=dataset_size,
+                    pca_n_components=pca_n_components,
+                    encode_kwargs=encode_kwarg
+                )
+            
+            except RuntimeError as e:
+                print("ERROR")
+                continue
 
-            results = evaluation.run(
-                model,
-                output_folder=f"results_{tasks_name[i]}/{model_name}/{cluster_algo}/{dataset_size}/{pca_n_components}/{hidden_layer}",
-                cluster_algo=cluster_algo,
-                limit=dataset_size,
-                pca_n_components=pca_n_components,
-                encode_kwargs=encode_kwarg
-            )
             
             print(results)

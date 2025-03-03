@@ -25,11 +25,15 @@ class WhisperWrapper(AudioEncoder):
             self.model = self.model.to(device)
         print("Whisper model initialized.")
 
-    def get_audio_embeddings(self,
-                             audio_files: list[Audio] | Audio,
-                             batch_size: int = 32,
-                             hidden_layer: int = -1,
-                             **kwargs) -> np.ndarray:
+    def get_audio_embeddings(
+            self,
+            audio_files: list[Audio] | Audio,
+            batch_size: int = 32,
+            **kwargs
+    ) -> np.ndarray:
+            
+        layer_percent = kwargs.get('hidden_layer')
+
         if not isinstance(audio_files, list):
             audio_files = [audio_files]
 
@@ -52,14 +56,18 @@ class WhisperWrapper(AudioEncoder):
                 inputs = {k: v.to(self.device) for k, v in inputs.items()}
 
             with torch.no_grad():
-                encoder_outputs = self.model.encoder(
+                outputs = self.model.encoder(
                     inputs.input_features,
                     output_hidden_states=True
                 )
 
-            print(f"Number of hidden states {len(encoder_outputs.hidden_states)}")
-            embeddings = encoder_outputs.hidden_states[hidden_layer]
-            batch_embeddings = embeddings.mean(dim=1).cpu().numpy()
+            no_hidden_states = len(outputs.hidden_states)
+            print("No of layers:", no_hidden_states)
+            layer = int(layer_percent * no_hidden_states)
+            print(f"Using layer: {layer}")
+
+            hidden_states = outputs.hidden_states[layer-1]
+            batch_embeddings = hidden_states.mean(dim=1).cpu().numpy()
             print(batch_embeddings.shape)
             all_embeddings.append(batch_embeddings)
 
