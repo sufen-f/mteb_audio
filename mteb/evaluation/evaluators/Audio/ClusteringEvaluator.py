@@ -30,18 +30,17 @@ class AudioClusteringEvaluator(Evaluator):
         **kwargs,
     ):
         super().__init__(**kwargs)
-        if limit is not None:
-            audio = audio[:limit]
-            labels = labels[:limit]
-        
-       
         self.pca_n_components = pca_n_components
             
         random.seed(42)
         combined = list(zip(audio, labels))
         random.shuffle(combined)
         audio, labels = map(list, zip(*combined))
-        
+
+        if limit is not None:
+            audio = audio[:limit]
+            labels = labels[:limit]
+
         self.audio = audio
         self.labels = labels
         self.clustering_batch_size = clustering_batch_size
@@ -96,7 +95,7 @@ class AudioClusteringEvaluator(Evaluator):
 
         matrix = metrics.confusion_matrix(self.labels, cluster_assignment)
 
-        silhouette = float(metrics.silhouette_score(audio_embeddings, cluster_assignment, metric='euclidean'))
+        silhouette = float(metrics.silhouette_score(audio_embeddings, cluster_assignment, metric='cosine'))
         print(self.cluster_algo)
         # get linear sum assignment
         row_ind, col_ind = linear_sum_assignment(matrix, maximize=True)
