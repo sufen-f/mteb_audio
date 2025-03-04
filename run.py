@@ -43,18 +43,18 @@ for i in range(len(tasks)):
 
         evaluation = mteb.MTEB(tasks=task)
 
-        for cluster_algo, pca_n_components, hidden_layer, dataset_size in tqdm(
+        for cluster_algo, pca_n_components, hidden_layer_percentage, dataset_size in tqdm(
                 itertools.product(cluster_algos, pca_n_components_values, encode_hidden_layers, dataset_sizes), 
                 total=len(cluster_algos) * len(pca_n_components_values) * len(encode_hidden_layers) * len(dataset_sizes)):
     
             
-            print(f"results for Model={model_name}, Cluster={cluster_algo}, PCA={pca_n_components}, Hidden Layer={hidden_layer}, Dataset Size={dataset_size}:")
+            print(f"results for Model={model_name}, Cluster={cluster_algo}, PCA={pca_n_components}, Hidden Layer={hidden_layer_percentage}, Dataset Size={dataset_size}:")
 
-            encode_kwarg = {"hidden_layer": hidden_layer}
+            encode_kwarg = {"file_path": f"embeddings_{task}/{model_name}/{hidden_layer_percentage}/embeddings.npy", "embed_limit": dataset_size} 
             try:
                 results = evaluation.run(
                     model,
-                    output_folder=f"results_{tasks_name[i]}/{model_name}/{cluster_algo}/{dataset_size}/{pca_n_components}/{hidden_layer}",
+                    output_folder=f"results_{tasks_name[i]}/{model_name}/{cluster_algo}/{dataset_size}/{pca_n_components}/{hidden_layer_percentage}",
                     cluster_algo=cluster_algo,
                     limit=dataset_size,
                     pca_n_components=pca_n_components,

@@ -65,18 +65,11 @@ class AudioClusteringEvaluator(Evaluator):
         return clustering_model
 
     def __call__(self, model: Encoder, *, encode_kwargs: dict[str, Any] = {}):
-        if "batch_size" not in encode_kwargs:
-            encode_kwargs["batch_size"] = 32
-
-        audio_embeddings = model.get_audio_embeddings(
-            self.audio,
-            batch_size=encode_kwargs["batch_size"],
-            hidden_layer=encode_kwargs.get("hidden_layer", -1),
-            
-        )
-
-        logger.info("Fitting Mini-Batch K-Means model...")
-        
+ 
+        audio_embeddings = np.load(encode_kwargs["file_path"])
+        if encode_kwargs["embed_limit"] is not None:
+           audio_embeddings = audio_embeddings[:encode_kwargs["embed_limit"]]
+           labels = labels[:encode_kwargs["embed_limit"]]
         if self.pca_n_components is not None:
             pca = PCA(n_components=self.pca_n_components)
             print("done",self.pca_n_components)
