@@ -6,54 +6,51 @@ import torch
 from transformers import Wav2Vec2Model, Wav2Vec2FeatureExtractor
 from mteb.model_meta import ModelMeta
 from datasets import Audio
+import os
 
 
-class Wav2vec2Wrapper(AudioEncoder):
+class Wav2vec2Wrapper:
     def __init__(
             self,
             model_name: str,
-            # revision: str,
             device: str | None = 'cuda',
             **kwargs
     ):
-        super().__init__(device=device, **kwargs)
         self.model_name = model_name
-        # self.model_revision = revision
+        self.device = device if torch.cuda.is_available() else 'cpu'
 
-        self.model = Wav2Vec2Model.from_pretrained(
-            self.model_name,
-            # revision=self.model_revision
-        )
-        self.feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(
-            self.model_name,
-            # revision=self.model_revision
-        )
+        # Load Wav2Vec2 model and feature extractor
+        self.model = Wav2Vec2Model.from_pretrained(self.model_name).to(self.device)
+        self.feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(self.model_name)
         self.embed_dim = self.model.config.hidden_size
 
-        if device:
-            self.model = self.model.to(device)
-            self.device =device
         print("Wav2vec initialized.")
 
     def get_audio_embeddings(
             self,
-            audio_files: list[Audio] | Audio,
+            audio_files: list[dict],
             batch_size: int = 32,
+            save_dir: str = "embeddings",
             **kwargs
-    ) -> np.ndarray:
+    ) -> None:
 
-        layer_percent = kwargs.get('hidden_layer')
-        if not isinstance(audio_files, list):
-            audio_files = [audio_files]
+        hidden_layer_percentages = [0.25, 0.5, 1]  # Extract these layers
+        num_files = len(audio_files)
 
-        all_embeddings = []
+        # Initialize dictionaries to store embeddings
+        all_embeddings = {perc: [] for perc in hidden_layer_percentages}
 
-        for i in range(0, len(audio_files), 1):
+        print(f"Processing {num_files} audio files...")
+
+        from tqdm import tqdm
+
+        for i in tqdm(range(0, num_files, batch_size), desc="Processing batches"):
+
             batch = audio_files[i:i + batch_size]
 
             audio_data = [file['array'] for file in batch]
             sampling_rates = [file['sampling_rate'] for file in batch]
-            # print(audio_data.shape)
+
             # Preprocess batch
             inputs = self.feature_extractor(
                 audio_data,
@@ -62,8 +59,7 @@ class Wav2vec2Wrapper(AudioEncoder):
                 return_tensors="pt"
             )
 
-            if hasattr(self, 'device') and self.device:
-                inputs = {k: v.to(self.device) for k, v in inputs.items()}
+            inputs = {k: v.to(self.device) for k, v in inputs.items()}
 
             # Get embeddings
             with torch.no_grad():
@@ -72,28 +68,36 @@ class Wav2vec2Wrapper(AudioEncoder):
                     output_hidden_states=True,
                     return_dict=True
                 )
-            
-            no_hidden_states = len(outputs.hidden_states)
-            # print("No of layers:", no_hidden_states)
-            layer = int(layer_percent * no_hidden_states)
-            # print(f"Using layer: {layer}")
 
-            hidden_states = outputs.hidden_states[layer-1]
-            # print(hidden_states.shape)
-            batch_embeddings = hidden_states.mean(dim=1).cpu().numpy()
-            all_embeddings.append(batch_embeddings)
+            num_hidden_states = len(outputs.hidden_states)
 
-        return np.vstack(all_embeddings)
+            for percentage in hidden_layer_percentages:
+                layer_index = int(percentage * num_hidden_states) - 1  # Get correct layer index
+                hidden_states = outputs.hidden_states[layer_index]
+
+                batch_embeddings = hidden_states.mean(dim=1).cpu().numpy()
+                all_embeddings[percentage].append(batch_embeddings)
+
+        # Concatenate all batches and save embeddings
+        for percentage, embeddings_list in all_embeddings.items():
+            full_embeddings = np.vstack(embeddings_list)  # Stack all batches into (2048, embed_dim)
+            layer_folder = os.path.join(save_dir, self.model_name, str(percentage))
+            os.makedirs(layer_folder, exist_ok=True)
+
+            save_path = os.path.join(layer_folder, "embeddings.npy")
+            np.save(save_path, full_embeddings)
+            print(f"Saved embeddings at {save_path} with shape {full_embeddings.shape}")
 
     def encode(
             self,
-            audio_files: list[Audio],
+            audio_files: list[dict],
             *,
             task_name: str,
-            prompt_type: PromptType | None = None,
+            prompt_type: str | None = None,
             **kwargs
-    ) -> np.ndarray:
-        return self.get_audio_embeddings(audio_files, **kwargs)
+    ) -> None:
+        self.get_audio_embeddings(audio_files, **kwargs)
+
 
 
 wav2vec2_base = ModelMeta(

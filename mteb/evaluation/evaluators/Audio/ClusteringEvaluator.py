@@ -72,40 +72,39 @@ class AudioClusteringEvaluator(Evaluator):
             self.audio,
             batch_size=encode_kwargs["batch_size"],
             hidden_layer=encode_kwargs.get("hidden_layer", -1),
-            
         )
 
-        logger.info("Fitting Mini-Batch K-Means model...")
+        # logger.info("Fitting Mini-Batch K-Means model...")
         
-        if self.pca_n_components is not None:
-            pca = PCA(n_components=self.pca_n_components)
-            print("done",self.pca_n_components)
-            audio_embeddings = pca.fit_transform(audio_embeddings)
+        # if self.pca_n_components is not None:
+        #     pca = PCA(n_components=self.pca_n_components)
+        #     print("done",self.pca_n_components)
+        #     audio_embeddings = pca.fit_transform(audio_embeddings)
 
-        clustering_output = self.__clustering__()
-        clustering_output.fit(audio_embeddings)
-        cluster_assignment = clustering_output.labels_
+        # clustering_output = self.__clustering__()
+        # clustering_output.fit(audio_embeddings)
+        # cluster_assignment = clustering_output.labels_
 
-        logger.info("Evaluating...")
-        v_measure = metrics.cluster.v_measure_score(self.labels, cluster_assignment)
-        nmi = metrics.cluster.normalized_mutual_info_score(
-            self.labels, cluster_assignment
-        )
-        ari = metrics.cluster.adjusted_rand_score(self.labels, cluster_assignment)
+        # logger.info("Evaluating...")
+        # v_measure = metrics.cluster.v_measure_score(self.labels, cluster_assignment)
+        # nmi = metrics.cluster.normalized_mutual_info_score(
+        #     self.labels, cluster_assignment
+        # )
+        # ari = metrics.cluster.adjusted_rand_score(self.labels, cluster_assignment)
 
-        matrix = metrics.confusion_matrix(self.labels, cluster_assignment)
+        # matrix = metrics.confusion_matrix(self.labels, cluster_assignment)
 
-        silhouette = float(metrics.silhouette_score(audio_embeddings, cluster_assignment, metric='cosine'))
-        print(self.cluster_algo)
-        # get linear sum assignment
-        row_ind, col_ind = linear_sum_assignment(matrix, maximize=True)
-        total_correct = matrix[row_ind, col_ind].sum()
-        clustering_accuracy = total_correct / len(self.labels)
+        # silhouette = float(metrics.silhouette_score(audio_embeddings, cluster_assignment, metric='cosine'))
+        # print(self.cluster_algo)
+        # # get linear sum assignment
+        # row_ind, col_ind = linear_sum_assignment(matrix, maximize=True)
+        # total_correct = matrix[row_ind, col_ind].sum()
+        # clustering_accuracy = total_correct / len(self.labels)
 
         return {
-            "v_measure": v_measure,
-            "nmi": nmi,
-            "ari": ari,
-            "cluster_accuracy": clustering_accuracy,
-            "silhouette": silhouette,
+            "v_measure": 0.0,
+            "nmi": 0.0,
+            "ari": 0.0,
+            "cluster_accuracy": 0.0,
+            "silhouette": 0.0,
         }

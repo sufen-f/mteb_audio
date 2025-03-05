@@ -10,30 +10,35 @@ model_names = [
     # "facebook/wav2vec2-large",
     # "facebook/wav2vec2-large-xlsr-53",
     # "facebook/wav2vec2-lv-60-espeak-cv-ft",
-    "microsoft/wavlm-base-plus-sd",
-    "microsoft/wavlm-base-plus-sv",
-    "microsoft/wavlm-base-sd",
-    "microsoft/wavlm-base-sv",
-    "microsoft/wavlm-base-plus",
-    "microsoft/wavlm-base",
-    "microsoft/wavlm-large",
-    # "openai/whisper-large-v3",
-    # "openai/whisper-medium",
+    # "microsoft/wavlm-base-plus-sd",
+    # "microsoft/wavlm-base-plus-sv",
+    # "microsoft/wavlm-base-sd",
     # "openai/whisper-tiny",
     # "openai/whisper-base",
     # "openai/whisper-small",
     # "Qwen/Qwen2-Audio-7B"
+    # ----------------------
+    "microsoft/wavlm-base-sv",
+    "microsoft/wavlm-base-plus",
+    "microsoft/wavlm-base",
+    "microsoft/wavlm-large",
+    "openai/whisper-large-v3",
+    "openai/whisper-medium",
+
 ]
 
 
 # cluster_algos = ["Kmeans", "DBSCAN", "Agg"]
-cluster_algos = ["Kmeans", "Agg"]
+cluster_algos = ["Kmeans"]
 
-pca_n_components_values = [200, None]
-encode_hidden_layers = [0.25, 0.5, 1]
-dataset_sizes = [512, 1024, 2048]
-tasks = [[CREMADEmotionClustering()], [VoiceGenderClustering()]]
-tasks_name = ['emotion_cluster', 'gender_cluster']
+pca_n_components_values = [200]
+encode_hidden_layers = [0.25]
+dataset_sizes = [2048]
+tasks = [[VoiceGenderClustering()]]
+tasks_name = ['gender_cluster']
+
+# tasks = [[CREMADEmotionClustering()]]
+# tasks_name = ['emotion_cluster']
 
 for i in range(len(tasks)):
     task = tasks[i]
@@ -54,7 +59,7 @@ for i in range(len(tasks)):
             try:
                 results = evaluation.run(
                     model,
-                    output_folder=f"results_{tasks_name[i]}/{model_name}/{cluster_algo}/{dataset_size}/{pca_n_components}/{hidden_layer}",
+                    output_folder=f"results_test_{tasks_name[i]}/{model_name}/{cluster_algo}/{dataset_size}/{pca_n_components}/{hidden_layer}",
                     cluster_algo=cluster_algo,
                     limit=dataset_size,
                     pca_n_components=pca_n_components,

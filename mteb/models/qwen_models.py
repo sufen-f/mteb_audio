@@ -17,68 +17,89 @@ import librosa
 from transformers import AutoFeatureExtractor, Qwen2AudioForConditionalGeneration, AutoProcessor
 from mteb.model_meta import ModelMeta
 from datasets import Audio
+import os
+import numpy as np
+import torch
+from transformers import AutoProcessor, Qwen2AudioForConditionalGeneration
 
-class Qwen2AudioWrapper(AudioEncoder):
+class Qwen2AudioWrapper:
     def __init__(self, model_name: str, device: str | None = None, **kwargs):
-        super().__init__(device=device, **kwargs)
         self.processor = AutoProcessor.from_pretrained("Qwen/Qwen2-Audio-7B")
         self.model = Qwen2AudioForConditionalGeneration.from_pretrained("Qwen/Qwen2-Audio-7B")
 
         self.audio_encoder = self.model.audio_tower
-       
+        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        self.model = self.model.to(self.device)
+        self.audio_encoder = self.audio_encoder.to(self.device)
+
         if hasattr(self.model.config.audio_config, "d_model"):
             self.embed_dim = self.model.config.audio_config.d_model
         elif hasattr(self.model.config.audio_config, "hidden_size"):
             self.embed_dim = self.model.config.audio_config.hidden_size
         else:
             self.embed_dim = None
-        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-        self.model = self.model.to(self.device)
-        self.audio_encoder = self.audio_encoder.to(self.device)
-        print("Qwen2-Audio initialized. Hiden dim:", self.embed_dim)
+
+        print("Qwen2-Audio initialized. Hidden dim:", self.embed_dim)
 
     def get_audio_embeddings(
             self,
-            audio_files: list[Audio] | Audio,
+            audio_files: list[dict],
             batch_size: int = 32,
+            save_dir: str = "embeddings",
             **kwargs
-    ) -> np.ndarray:
-        layer_percent = kwargs.get('hidden_layer')
+    ) -> None:
+        
+        hidden_layer_percentages = [0.25, 0.5, 1]  # Extract these layers
+        num_files = len(audio_files)
 
-        if not isinstance(audio_files, list):
-            audio_files = [audio_files]
-        all_embeds = []
-        for i in range(0, len(audio_files), batch_size):
+        # Initialize dictionaries to store embeddings
+        all_embeddings = {perc: [] for perc in hidden_layer_percentages}
+
+        print(f"Processing {num_files} audio files...")
+
+        from tqdm import tqdm
+
+        for i in tqdm(range(0, num_files, batch_size), desc="Processing batches"):
+
             batch = audio_files[i:i + batch_size]
             audios = [file['array'] for file in batch]
             sr = batch[0]['sampling_rate']
 
             prompt = " ".join(["<|AUDIO|>"] * len(batch))
-            inputs = self.processor(text=prompt,
-                                    audios=audios,
-                                    sampling_rate=sr,
-                                    return_tensors="pt",
-                                    padding=True
-                                    )
+            inputs = self.processor(
+                text=prompt,
+                audios=audios,
+                sampling_rate=sr,
+                return_tensors="pt",
+                padding=True
+            )
 
             input_features = inputs.input_features.to(self.device)
+
             with torch.no_grad():
                 outputs = self.audio_encoder(input_features=input_features, output_hidden_states=True)
 
-            no_hidden_states = len(outputs.hidden_states)
-            print("No of layers:", no_hidden_states)
-            layer = int(layer_percent * no_hidden_states)
-            print(f"Using layer: {layer}")
+            num_hidden_states = len(outputs.hidden_states)
 
-            hidden_states = outputs.hidden_states[layer-1]
-            embeds = hidden_states.mean(dim=1)
-            print(embeds.shape)
-            all_embeds.append(embeds.cpu().numpy())
+            for percentage in hidden_layer_percentages:
+                layer_index = int(percentage * num_hidden_states) - 1  # Get correct layer index
+                hidden_states = outputs.hidden_states[layer_index]
 
-        return np.vstack(all_embeds)
+                batch_embeddings = hidden_states.mean(dim=1).cpu().numpy()
+                all_embeddings[percentage].append(batch_embeddings)
 
-    def encode(self, audio_files: list[Audio], *, task_name: str, prompt_type: PromptType | None = None, **kwargs) -> np.ndarray:
-        return self.get_audio_embeddings(audio_files, **kwargs)
+        # Concatenate all batches and save embeddings
+        for percentage, embeddings_list in all_embeddings.items():
+            full_embeddings = np.vstack(embeddings_list)  # Stack all batches into (2048, embed_dim)
+            layer_folder = os.path.join(save_dir, "Qwen/Qwen2-Audio-7B", str(percentage))
+            os.makedirs(layer_folder, exist_ok=True)
+
+            save_path = os.path.join(layer_folder, "embeddings.npy")
+            np.save(save_path, full_embeddings)
+            print(f"Saved embeddings at {save_path} with shape {full_embeddings.shape}")
+
+    def encode(self, audio_files: list[dict], *, task_name: str, prompt_type: str | None = None, **kwargs) -> None:
+        self.get_audio_embeddings(audio_files, **kwargs)
 
 
 qwen2_audio_meta = ModelMeta(
