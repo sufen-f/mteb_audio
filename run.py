@@ -5,26 +5,24 @@ import itertools
 from tqdm import tqdm
 
 model_names = [
-    # "facebook/wav2vec2-base",
-    # "facebook/wav2vec2-base-960h",
-    # "facebook/wav2vec2-large",
-    # "facebook/wav2vec2-large-xlsr-53",
-    # "facebook/wav2vec2-lv-60-espeak-cv-ft",
+    "facebook/wav2vec2-base",
+    "facebook/wav2vec2-base-960h",
+    "facebook/wav2vec2-large",
+    "facebook/wav2vec2-large-xlsr-53",
+    "facebook/wav2vec2-lv-60-espeak-cv-ft",
     # "microsoft/wavlm-base-plus-sd",
     # "microsoft/wavlm-base-plus-sv",
     # "microsoft/wavlm-base-sd",
     # "openai/whisper-tiny",
     # "openai/whisper-base",
     # "openai/whisper-small",
+    # "microsoft/wavlm-base-sv",
+    # "microsoft/wavlm-base-plus",
+    # "microsoft/wavlm-base",
+    # "microsoft/wavlm-large",
+    # "openai/whisper-large-v3",
+    # "openai/whisper-medium",
     # "Qwen/Qwen2-Audio-7B"
-    # ----------------------
-    "microsoft/wavlm-base-sv",
-    "microsoft/wavlm-base-plus",
-    "microsoft/wavlm-base",
-    "microsoft/wavlm-large",
-    "openai/whisper-large-v3",
-    "openai/whisper-medium",
-
 ]
 
 
@@ -70,5 +68,5 @@ for i in range(len(tasks)):
                 print("ERROR")
                 continue
 
-            
+            # exit(0)
             print(results)
