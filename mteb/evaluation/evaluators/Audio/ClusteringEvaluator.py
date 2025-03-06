@@ -66,7 +66,9 @@ class AudioClusteringEvaluator(Evaluator):
 
     def __call__(self, model: Encoder, *, encode_kwargs: dict[str, Any] = {}):
  
-        audio_embeddings = np.load(encode_kwargs["file_path"])
+        data = np.load(encode_kwargs["file_path"])
+        audio_embeddings = data["embeddings"]
+        labels = data["labels"]
         if encode_kwargs["embed_limit"] is not None:
            audio_embeddings = audio_embeddings[:encode_kwargs["embed_limit"]]
            labels = labels[:encode_kwargs["embed_limit"]]
