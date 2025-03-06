@@ -68,8 +68,9 @@ class AudioClusteringEvaluator(Evaluator):
         if "batch_size" not in encode_kwargs:
             encode_kwargs["batch_size"] = 32
 
-        audio_embeddings = model.get_audio_embeddings(
+        model.get_audio_embeddings(
             self.audio,
+            self.labels,
             batch_size=encode_kwargs["batch_size"],
             hidden_layer=encode_kwargs.get("hidden_layer", -1),
         )
