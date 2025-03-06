@@ -63,10 +63,10 @@ if __name__ == "__main__":
     print(f"Loaded model type: {type(model)}")
     evaluation = mteb.MTEB(tasks=[CREMADEmotionClassification()])
     classification_method = "logReg" #CHANGE TO K_NN IF NEEDED
-    encode_kwarg = {"file_path": f"../../../../../embeddings_gender_cluster/{model_name}/0.5/embeddings.npy",
+    encode_kwarg = {"file_path": f"../../../../../new_emotion_embeddings/{model_name}/0.5/embeddings.npz",
                     "embed_limit": 512,
                     "hidden_layer": 6,
-                    "test_split": .2,
+                    "test_split": .8,
                     }
     dataset_size = 224
 
