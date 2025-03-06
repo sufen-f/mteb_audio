@@ -33,7 +33,7 @@ class VoiceGenderClassification(AbsTaskAudioClassification):
         audio = ds_split["audio"]
         labels = ds_split["label"]
         datasize = len(ds_split)
-        split_index = int(datasize * .2)
+        split_index = int(datasize * .8)
         audio_train = audio[:split_index]
         audio_test = audio[split_index:]
         labels_train = labels[:split_index]
@@ -56,10 +56,10 @@ if __name__ == "__main__":
     print(f"Loaded model type: {type(model)}")
     evaluation = mteb.MTEB(tasks=[VoiceGenderClassification()])
     classification_method = "logReg" #CHANGE TO K_NN IF NEEDED
-    encode_kwarg = {"file_path": f"../../../../../embeddings_gender_cluster/{model_name}/0.5/embeddings.npy",
+    encode_kwarg = {"file_path": f"../../../../../new_gender_embeddings/{model_name}/0.5/embeddings.npz",
                     "embed_limit": 512,
                     "hidden_layer": 6,
-                    "test_split": .2,
+                    "test_split": .8,
                     }
     dataset_size = 224
 
