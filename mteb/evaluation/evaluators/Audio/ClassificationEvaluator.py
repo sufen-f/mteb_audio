@@ -296,7 +296,9 @@ class AudiologRegClassificationEvaluator(Evaluator):
             verbose=1 if logger.isEnabledFor(logging.DEBUG) else 0,
         )
 
-        audio_embeddings = np.load(encode_kwargs["file_path"])
+        data = np.load(encode_kwargs["file_path"])
+        audio_embeddings = data["embeddings"]
+        labels = data["labels"]
 
         random.seed(42)
         combined = list(zip(audio_embeddings, self.labels))
