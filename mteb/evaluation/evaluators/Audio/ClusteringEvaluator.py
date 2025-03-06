@@ -65,47 +65,42 @@ class AudioClusteringEvaluator(Evaluator):
         return clustering_model
 
     def __call__(self, model: Encoder, *, encode_kwargs: dict[str, Any] = {}):
-        if "batch_size" not in encode_kwargs:
-            encode_kwargs["batch_size"] = 32
+ 
+        data = np.load(encode_kwargs["file_path"])
+        audio_embeddings = data["embeddings"]
+        labels = data["labels"]
+        if encode_kwargs["embed_limit"] is not None:
+           audio_embeddings = audio_embeddings[:encode_kwargs["embed_limit"]]
+           labels = labels[:encode_kwargs["embed_limit"]]
+        if self.pca_n_components is not None:
+            pca = PCA(n_components=self.pca_n_components)
+            print("done",self.pca_n_components)
+            audio_embeddings = pca.fit_transform(audio_embeddings)
 
-        model.get_audio_embeddings(
-            self.audio,
-            self.labels,
-            batch_size=encode_kwargs["batch_size"],
-            hidden_layer=encode_kwargs.get("hidden_layer", -1),
+        clustering_output = self.__clustering__()
+        clustering_output.fit(audio_embeddings)
+        cluster_assignment = clustering_output.labels_
+
+        logger.info("Evaluating...")
+        v_measure = metrics.cluster.v_measure_score(self.labels, cluster_assignment)
+        nmi = metrics.cluster.normalized_mutual_info_score(
+            self.labels, cluster_assignment
         )
+        ari = metrics.cluster.adjusted_rand_score(self.labels, cluster_assignment)
 
-        # logger.info("Fitting Mini-Batch K-Means model...")
-        
-        # if self.pca_n_components is not None:
-        #     pca = PCA(n_components=self.pca_n_components)
-        #     print("done",self.pca_n_components)
-        #     audio_embeddings = pca.fit_transform(audio_embeddings)
+        matrix = metrics.confusion_matrix(self.labels, cluster_assignment)
 
-        # clustering_output = self.__clustering__()
-        # clustering_output.fit(audio_embeddings)
-        # cluster_assignment = clustering_output.labels_
-
-        # logger.info("Evaluating...")
-        # v_measure = metrics.cluster.v_measure_score(self.labels, cluster_assignment)
-        # nmi = metrics.cluster.normalized_mutual_info_score(
-        #     self.labels, cluster_assignment
-        # )
-        # ari = metrics.cluster.adjusted_rand_score(self.labels, cluster_assignment)
-
-        # matrix = metrics.confusion_matrix(self.labels, cluster_assignment)
-
-        # silhouette = float(metrics.silhouette_score(audio_embeddings, cluster_assignment, metric='cosine'))
-        # print(self.cluster_algo)
-        # # get linear sum assignment
-        # row_ind, col_ind = linear_sum_assignment(matrix, maximize=True)
-        # total_correct = matrix[row_ind, col_ind].sum()
-        # clustering_accuracy = total_correct / len(self.labels)
+        silhouette = float(metrics.silhouette_score(audio_embeddings, cluster_assignment, metric='cosine'))
+        print(self.cluster_algo)
+        # get linear sum assignment
+        row_ind, col_ind = linear_sum_assignment(matrix, maximize=True)
+        total_correct = matrix[row_ind, col_ind].sum()
+        clustering_accuracy = total_correct / len(self.labels)
 
         return {
-            "v_measure": 0.0,
-            "nmi": 0.0,
-            "ari": 0.0,
-            "cluster_accuracy": 0.0,
-            "silhouette": 0.0,
+            "v_measure": v_measure,
+            "nmi": nmi,
+            "ari": ari,
+            "cluster_accuracy": clustering_accuracy,
+            "silhouette": silhouette,
         }
