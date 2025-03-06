@@ -272,7 +272,6 @@ class AudiologRegClassificationEvaluator(Evaluator):
 
         if "batch_size" not in self.encode_kwargs:
             self.encode_kwargs["batch_size"] = 32
-        print("size of training dataset: ", len(dataset_train))
         if limit is not None:
             dataset_train = dataset_train.select(list(range(limit)))
 
