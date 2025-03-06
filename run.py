@@ -5,18 +5,18 @@ import itertools
 from tqdm import tqdm
 
 model_names = [
-    # "facebook/wav2vec2-base",
+    "facebook/wav2vec2-base",
     # "facebook/wav2vec2-base-960h",
     # "facebook/wav2vec2-large",
     # "facebook/wav2vec2-large-xlsr-53",
     # "facebook/wav2vec2-lv-60-espeak-cv-ft",
-    "microsoft/wavlm-base-plus-sd",
-    "microsoft/wavlm-base-plus-sv",
-    "microsoft/wavlm-base-sd",
-    "microsoft/wavlm-base-sv",
-    "microsoft/wavlm-base-plus",
-    "microsoft/wavlm-base",
-    "microsoft/wavlm-large",
+    # "microsoft/wavlm-base-plus-sd",
+    # "microsoft/wavlm-base-plus-sv",
+    # "microsoft/wavlm-base-sd",
+    # "microsoft/wavlm-base-sv",
+    # "microsoft/wavlm-base-plus",
+    # "microsoft/wavlm-base",
+    # "microsoft/wavlm-large",
     # "openai/whisper-large-v3",
     # "openai/whisper-medium",
     # "openai/whisper-tiny",
@@ -32,13 +32,15 @@ cluster_algos = ["Kmeans", "Agg"]
 pca_n_components_values = [200, None]
 encode_hidden_layers = [0.25, 0.5, 1]
 dataset_sizes = [512, 1024, 2048]
-tasks = [[CREMADEmotionClustering()], [VoiceGenderClustering()]]
-tasks_name = ['emotion_cluster', 'gender_cluster']
+tasks = [[VoiceGenderClustering()],[CREMADEmotionClustering()]]
+tasks_name = ['gender','emotion']
 
-for i in range(len(tasks)):
+
+for i in range(len(tasks)-1):
     task = tasks[i]
+    task_name = tasks_name[i]
     for model_name in model_names:
-        model = mteb.get_model(model_name)
+        model = mteb.get_model(model_name,device='cpu')
         print(f"Loaded model: {model_name} (Type: {type(model)})")
 
         evaluation = mteb.MTEB(tasks=task)
@@ -50,7 +52,7 @@ for i in range(len(tasks)):
             
             print(f"results for Model={model_name}, Cluster={cluster_algo}, PCA={pca_n_components}, Hidden Layer={hidden_layer_percentage}, Dataset Size={dataset_size}:")
 
-            encode_kwarg = {"file_path": f"embeddings_{task}/{model_name}/{hidden_layer_percentage}/embeddings.npy", "embed_limit": dataset_size} 
+            encode_kwarg = {"file_path": f"new_{task_name}_embeddings/{model_name}/{hidden_layer_percentage}/embeddings.npz", "embed_limit": dataset_size} 
             try:
                 results = evaluation.run(
                     model,
@@ -60,6 +62,7 @@ for i in range(len(tasks)):
                     pca_n_components=pca_n_components,
                     encode_kwargs=encode_kwarg
                 )
+                print("saved in",f"results_{tasks_name[i]}/{model_name}/{cluster_algo}/{dataset_size}/{pca_n_components}/{hidden_layer_percentage}")
             
             except RuntimeError as e:
                 print("ERROR")
