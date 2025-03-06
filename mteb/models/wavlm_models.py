@@ -10,6 +10,7 @@ import os
 import numpy as np
 import torch
 from transformers import WavLMModel, Wav2Vec2FeatureExtractor
+from tqdm import tqdm
 
 class WavlmWrapper:
     def __init__(self,
@@ -36,28 +37,31 @@ class WavlmWrapper:
         
         print("WavLM initialized.")
 
+
     def get_audio_embeddings(
             self,
             audio_files: list[dict],
+            labels: list[int],
             batch_size: int = 32,
-            save_dir: str = "embeddings",
+            save_dir: str = "new_gender_embeddings",
             **kwargs
     ) -> None:
-        
+
         hidden_layer_percentages = [0.25, 0.5, 1]  # Extract these layers
         num_files = len(audio_files)
 
-        # Initialize dictionaries to store embeddings
+        # Initialize storage for embeddings and labels
         all_embeddings = {perc: [] for perc in hidden_layer_percentages}
+        all_labels = {perc: [] for perc in hidden_layer_percentages}
 
-        print(f"Processing {num_files} audio files...")
-
-        from tqdm import tqdm
+        print(f"Processing {num_files} audio files with {len(labels)} labels...")
+        # print(labels)
 
         for i in tqdm(range(0, num_files, batch_size), desc="Processing batches"):
 
             batch = audio_files[i:i + batch_size]
-            
+            batch_labels = labels[i:i + batch_size]
+
             audio_data = [file['array'] for file in batch]
             sampling_rates = [file['sampling_rate'] for file in batch]
 
@@ -74,7 +78,7 @@ class WavlmWrapper:
             # Get embeddings
             with torch.no_grad():
                 outputs = self.model(
-                    input_values=inputs["input_values"], 
+                    input_values=inputs["input_values"],
                     output_hidden_states=True,
                     return_dict=True
                 )
@@ -87,16 +91,20 @@ class WavlmWrapper:
 
                 batch_embeddings = hidden_states.mean(dim=1).cpu().numpy()
                 all_embeddings[percentage].append(batch_embeddings)
+                all_labels[percentage].extend(batch_labels)  # Store labels
 
-        # Concatenate all batches and save embeddings
+        # Save embeddings and labels
         for percentage, embeddings_list in all_embeddings.items():
-            full_embeddings = np.vstack(embeddings_list)  # Stack all batches into (2048, embed_dim)
+            full_embeddings = np.vstack(embeddings_list)  # Stack all batches into (num_files, embed_dim)
+            full_labels = np.array(all_labels[percentage])
+
             layer_folder = os.path.join(save_dir, self.model_name, str(percentage))
             os.makedirs(layer_folder, exist_ok=True)
 
-            save_path = os.path.join(layer_folder, "embeddings.npy")
-            np.save(save_path, full_embeddings)
-            print(f"Saved embeddings at {save_path} with shape {full_embeddings.shape}")
+            # Save as .npz for easy loading
+            save_path = os.path.join(layer_folder, "embeddings.npz")
+            np.savez(save_path, embeddings=full_embeddings, labels=full_labels)
+            print(f"Saved embeddings at {save_path} with shape {full_embeddings.shape} and labels shape {full_labels.shape}")
 
     def encode(
         self,
