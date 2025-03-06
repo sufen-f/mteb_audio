@@ -40,7 +40,7 @@ for i in range(len(tasks)-1):
     task = tasks[i]
     task_name = tasks_name[i]
     for model_name in model_names:
-        model = mteb.get_model(model_name,device='cpu')
+        model = mteb.get_model(model_name)
         print(f"Loaded model: {model_name} (Type: {type(model)})")
 
         evaluation = mteb.MTEB(tasks=task)
