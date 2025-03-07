@@ -3,6 +3,7 @@ from mteb.tasks.Audio.Clustering.eng.VoiceGender import VoiceGenderClustering
 from mteb.tasks.Audio.Clustering.eng.VoiceEmotions import CREMADEmotionClustering
 import itertools
 from tqdm import tqdm
+import torch
 
 model_names = [
     "facebook/wav2vec2-base",
@@ -70,3 +71,5 @@ for i in range(len(tasks)):
 
             
             print(results)
+        del model
+        torch.cuda.empty_cache()

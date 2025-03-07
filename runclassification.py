@@ -4,9 +4,10 @@ from mteb.tasks.Audio.Classification.eng.VoiceEmotions import CREMADEmotionClass
 import itertools
 from tqdm import tqdm
 import multiprocessing
+import torch
 
 model_names = [
-    #"facebook/wav2vec2-base",
+    "facebook/wav2vec2-base",
     # "facebook/wav2vec2-base-960h",
     # "facebook/wav2vec2-large",
     # "facebook/wav2vec2-large-xlsr-53",
@@ -20,14 +21,14 @@ model_names = [
     # "microsoft/wavlm-large",
     # "openai/whisper-large-v3",
     # "openai/whisper-medium",
-    "openai/whisper-tiny",
+    #"openai/whisper-tiny",
     # "openai/whisper-base",
     # "openai/whisper-small",
     # "Qwen/Qwen2-Audio-7B"
 ]
 
 encode_hidden_layers = [0.5]
-dataset_sizes = [124]
+dataset_sizes = [1024]
 tasks = [[VoiceGenderClassification()],[CREMADEmotionClassification()]]
 tasks_name = ['gender_class','emotion_class']
 class_algos = ["logReg"]
@@ -37,7 +38,7 @@ for i in range(len(tasks)-1):
     task = tasks[i]
     task_name = tasks_name[i]
     for model_name in model_names:
-        model = mteb.get_model(model_name, device="cpu")
+        model = mteb.get_model(model_name)
         print(f"Loaded model: {model_name} (Type: {type(model)})")
 
         evaluation = mteb.MTEB(tasks=task)
@@ -54,6 +55,7 @@ for i in range(len(tasks)-1):
                     model,
                     output_folder=f"results_{tasks_name[i]}/{model_name}/{class_algo}/{dataset_size}/{hidden_layer_percentage}",
                     overwrite_results=True,
+                    encode_kwargs=encode_kwarg
                 )
                 print("saved in",f"results_{tasks_name[i]}/{model_name}/{class_algo}/{dataset_size}/{hidden_layer_percentage}")
             
@@ -63,3 +65,5 @@ for i in range(len(tasks)-1):
 
             
             print(results)
+        del model
+        torch.cuda.empty_cache()
