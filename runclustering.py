@@ -32,7 +32,7 @@ cluster_algos = ["Kmeans", "Agg"]
 
 pca_n_components_values = [200, None]
 encode_hidden_layers = [0.25, 0.5, 1]
-dataset_sizes = [512, 1024, 2048]
+dataset_sizes = [256, 1024, 2048]
 tasks = [[VoiceGenderClustering()],[CREMADEmotionClustering()]]
 tasks_name = ['gender','emotion']
 
