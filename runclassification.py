@@ -34,7 +34,7 @@ tasks_name = ['gender','emotion']
 class_algos = ["logReg"]
 
 
-for i in range(len(tasks)-1):
+for i in range(len(tasks)):
     task = tasks[i]
     task_name = tasks_name[i]
     for model_name in model_names:

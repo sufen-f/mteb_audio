@@ -68,10 +68,10 @@ class AudioClusteringEvaluator(Evaluator):
  
         data = np.load(encode_kwargs["file_path"])
         audio_embeddings = data["embeddings"]
-        labels = data["labels"]
+        self.labels = data["labels"]
         if encode_kwargs["embed_limit"] is not None:
            audio_embeddings = audio_embeddings[:encode_kwargs["embed_limit"]]
-           labels = labels[:encode_kwargs["embed_limit"]]
+           self.labels = labels[:encode_kwargs["embed_limit"]]
         if self.pca_n_components is not None:
             pca = PCA(n_components=self.pca_n_components)
             print("done",self.pca_n_components)
