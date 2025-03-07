@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import math
 import os
+import random
 from typing import Any
 
 import numpy as np
@@ -261,7 +262,7 @@ class AudiologRegClassificationEvaluator(Evaluator):
         audio_column_name,
         label_column_name,
         task_name: str,
-        max_iter: int = 100,
+        max_iter: int = 400,
         encode_kwargs: dict[str, Any] = {},
         limit: int | None = None,
         **kwargs,
@@ -271,7 +272,6 @@ class AudiologRegClassificationEvaluator(Evaluator):
 
         if "batch_size" not in self.encode_kwargs:
             self.encode_kwargs["batch_size"] = 32
-        print("size of training dataset: ", len(dataset_train))
         if limit is not None:
             dataset_train = dataset_train.select(list(range(limit)))
 
@@ -280,11 +280,12 @@ class AudiologRegClassificationEvaluator(Evaluator):
         self.y_train = dataset_train[label_column_name]
         self.dataset_test = dataset_test[audio_column_name]
         self.y_test = dataset_test[label_column_name]
+        self.labels = self.y_train + self.y_test
 
         self.max_iter = max_iter
         self.task_name = task_name
 
-    def __call__(self, model, test_cache=None):
+    def __call__(self, model, test_cache=None,encode_kwargs: dict[str, Any] = {}):
         scores = {}
         clf = LogisticRegression(
             random_state=self.seed,
@@ -293,22 +294,31 @@ class AudiologRegClassificationEvaluator(Evaluator):
             verbose=1 if logger.isEnabledFor(logging.DEBUG) else 0,
         )
 
-        X_train = model.get_audio_embeddings(
-            self.dataset_train, batch_size=self.encode_kwargs["batch_size"]
-        )
+        data = np.load(encode_kwargs["file_path"])
+        audio_embeddings = data["embeddings"]
+        labels = data["labels"]
 
-        if test_cache is None:
-            X_test = model.get_audio_embeddings(
-                self.dataset_test, batch_size=self.encode_kwargs["batch_size"]
-            )
-            test_cache = X_test
-        else:
-            X_test = test_cache
+        random.seed(42)
+        combined = list(zip(audio_embeddings, self.labels))
+        random.shuffle(combined)
+        audio_embeddings, self.labels = map(list, zip(*combined))
+
+        if encode_kwargs["embed_limit"] is not None:
+            audio_embeddings = audio_embeddings[:encode_kwargs["embed_limit"]]
+            self.labels = self.labels[:encode_kwargs["embed_limit"]]
+        if encode_kwargs["test_split"] is not None:
+            datasize = len(audio_embeddings)
+            split_index = int(datasize * encode_kwargs["test_split"])
+            X_train = audio_embeddings[:split_index]
+            X_test = audio_embeddings[split_index:]
+            self.y_train = self.labels[:split_index]
+            self.y_test = self.labels[split_index:]
+
         logger.info("Fitting logistic regression classifier...")
-        if X_train.dtype == torch.bfloat16:
-            X_train = X_train.to(torch.float32)
-        if X_test.dtype == torch.bfloat16:
-            X_test = X_test.to(torch.float32)
+#        if X_train.dtype == torch.bfloat16:
+#            X_train = X_train.to(torch.float32)
+#        if X_test.dtype == torch.bfloat16:
+#            X_test = X_test.to(torch.float32)
         clf.fit(X_train, self.y_train)
         logger.info("Evaluating...")
         y_pred = clf.predict(X_test)

@@ -148,7 +148,7 @@ class AbsTaskAudioClassification(AbsTask):
 
             if self.method == "kNN":
                 evaluator = AudiokNNClassificationEvaluator(
-                    undersampled_train,
+                    train_split,
                     eval_split,
                     self.audio_column_name,
                     self.label_column_name,
@@ -158,7 +158,7 @@ class AbsTaskAudioClassification(AbsTask):
                 )
             elif self.method == "kNN-pytorch":
                 evaluator = AudiokNNClassificationEvaluatorPytorch(
-                    undersampled_train,
+                    train_split,
                     eval_split,
                     self.audio_column_name,
                     self.label_column_name,
@@ -170,7 +170,7 @@ class AbsTaskAudioClassification(AbsTask):
                 # add in data transform here
 
                 evaluator = AudiologRegClassificationEvaluator(
-                    undersampled_train, #training data
+                    train_split, #training data
                     eval_split, # test data
                     self.audio_column_name,
                     self.label_column_name,
@@ -181,7 +181,7 @@ class AbsTaskAudioClassification(AbsTask):
             else:
                 raise ValueError(f"Method {self.method} not supported")
 
-            scores_exp, test_cache = evaluator(model, test_cache=test_cache)
+            scores_exp, test_cache = evaluator(model, test_cache=test_cache, encode_kwargs=encode_kwargs)
             scores.append(scores_exp)
 
         avg_scores: dict[str, Any] = {
