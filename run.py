@@ -11,18 +11,18 @@ model_names = [
     # "facebook/wav2vec2-large-xlsr-53",
     # "facebook/wav2vec2-lv-60-espeak-cv-ft",
 
-    # "openai/whisper-tiny",
-    # "openai/whisper-base",
+    "openai/whisper-tiny",
+    "openai/whisper-base",
     # "openai/whisper-small",
     # "microsoft/wavlm-base-sv",
     # "microsoft/wavlm-base-plus",
-    "microsoft/wavlm-base-plus-sv",
-    "microsoft/wavlm-base-sv",
-    "microsoft/wavlm-base",
-    "microsoft/wavlm-large",
+    # "microsoft/wavlm-base-plus-sv",
+    # "microsoft/wavlm-base-sv",
+    # "microsoft/wavlm-base",
+    # "microsoft/wavlm-large",
 
-    # "openai/whisper-large-v3",
-    # "openai/whisper-medium",
+    "openai/whisper-large-v3",
+    "openai/whisper-medium",
     # "Qwen/Qwen2-Audio-7B"
 ]
 
