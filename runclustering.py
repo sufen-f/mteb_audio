@@ -34,7 +34,7 @@ pca_n_components_values = [200, None]
 encode_hidden_layers = [0.25, 0.5, 1]
 dataset_sizes = [512, 1024, 2048]
 tasks = [[VoiceGenderClustering()],[CREMADEmotionClustering()]]
-tasks_name = ['gender_clust','emotion_clust']
+tasks_name = ['gender','emotion']
 
 
 for i in range(len(tasks)):
@@ -57,13 +57,13 @@ for i in range(len(tasks)):
             try:
                 results = evaluation.run(
                     model,
-                    output_folder=f"results_{tasks_name[i]}/{model_name}/{cluster_algo}/{dataset_size}/{pca_n_components}/{hidden_layer_percentage}",
+                    output_folder=f"Clust_results_{tasks_name[i]}/{model_name}/{cluster_algo}/{dataset_size}/{pca_n_components}/{hidden_layer_percentage}",
                     cluster_algo=cluster_algo,
                     limit=dataset_size,
                     pca_n_components=pca_n_components,
                     encode_kwargs=encode_kwarg
                 )
-                print("saved in",f"results_{tasks_name[i]}/{model_name}/{cluster_algo}/{dataset_size}/{pca_n_components}/{hidden_layer_percentage}")
+                print("saved in",f"Clust_results_{tasks_name[i]}/{model_name}/{cluster_algo}/{dataset_size}/{pca_n_components}/{hidden_layer_percentage}")
             
             except RuntimeError as e:
                 print("ERROR")

@@ -30,7 +30,7 @@ model_names = [
 encode_hidden_layers = [0.5]
 dataset_sizes = [1024]
 tasks = [[VoiceGenderClassification()],[CREMADEmotionClassification()]]
-tasks_name = ['gender_class','emotion_class']
+tasks_name = ['gender','emotion']
 class_algos = ["logReg"]
 
 
@@ -53,11 +53,11 @@ for i in range(len(tasks)-1):
             try:
                 results = evaluation.run(
                     model,
-                    output_folder=f"results_{tasks_name[i]}/{model_name}/{class_algo}/{dataset_size}/{hidden_layer_percentage}",
+                    output_folder=f"Class_results_{tasks_name[i]}/{model_name}/{class_algo}/{dataset_size}/{hidden_layer_percentage}",
                     overwrite_results=True,
                     encode_kwargs=encode_kwarg
                 )
-                print("saved in",f"results_{tasks_name[i]}/{model_name}/{class_algo}/{dataset_size}/{hidden_layer_percentage}")
+                print("saved in",f"Class_results_{tasks_name[i]}/{model_name}/{class_algo}/{dataset_size}/{hidden_layer_percentage}")
             
             except RuntimeError as e:
                 print("ERROR")
