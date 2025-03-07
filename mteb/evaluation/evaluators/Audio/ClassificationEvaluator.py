@@ -59,34 +59,31 @@ class AudiokNNClassificationEvaluator(Evaluator):
 
         self.k = k
 
-    def __call__(self, model, test_cache=None):
+    def __call__(self, model, test_cache=None, encode_kwargs: dict[str, Any] = {}):
         scores = {}
         max_accuracy = 0
         max_f1 = 0
         max_ap = 0
-        dataloader_train = DataLoader(
-            self.dataset_train,
-            batch_size=self.encode_kwargs["batch_size"],
-            shuffle=False,
-            collate_fn=custom_collate_fn,
-            num_workers=min(math.floor(os.cpu_count() / 2), 16),
-        )
-        X_train = model.get_audio_embeddings(
-            dataloader_train, batch_size=self.encode_kwargs["batch_size"]
-        )
-        dataloader = DataLoader(
-            self.dataset_test,
-            batch_size=self.encode_kwargs["batch_size"],
-            shuffle=False,
-            num_workers=min(math.floor(os.cpu_count() / 2), 16),
-        )
-        if test_cache is None:
-            X_test = model.get_audio_embeddings(
-                dataloader, batch_size=self.encode_kwargs["batch_size"]
-            )
-            test_cache = X_test
-        else:
-            X_test = test_cache
+
+        data = np.load(encode_kwargs["file_path"])
+        audio_embeddings = data["embeddings"]
+        self.labels = data["labels"]
+
+        random.seed(42)
+        combined = list(zip(audio_embeddings, self.labels))
+        random.shuffle(combined)
+        audio_embeddings, labels = zip(*combined)
+        if encode_kwargs["embed_limit"] is not None:
+            audio_embeddings = audio_embeddings[:encode_kwargs["embed_limit"]]
+            self.labels = self.labels[:encode_kwargs["embed_limit"]]
+        if encode_kwargs["test_split"] is not None:
+            datasize = len(audio_embeddings)
+            split_index = int(datasize * encode_kwargs["test_split"])
+            X_train = audio_embeddings[:split_index]
+            X_test = audio_embeddings[split_index:]
+            self.y_train = self.labels[:split_index]
+            self.y_test = self.labels[split_index:]
+
         for metric in ["cosine", "euclidean"]:  # TODO: "dot"
             knn = KNeighborsClassifier(n_neighbors=self.k, n_jobs=-1, metric=metric)
             knn.fit(X_train, self.y_train)
@@ -107,7 +104,6 @@ class AudiokNNClassificationEvaluator(Evaluator):
         if len(np.unique(self.y_train)) == 2:
             scores["ap"] = max_ap
         return scores, test_cache
-
 
 class AudiokNNClassificationEvaluatorPytorch(Evaluator):
     def __init__(
