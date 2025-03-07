@@ -10,20 +10,18 @@ model_names = [
     # "facebook/wav2vec2-large",
     # "facebook/wav2vec2-large-xlsr-53",
     # "facebook/wav2vec2-lv-60-espeak-cv-ft",
-
-    "openai/whisper-tiny",
-    "openai/whisper-base",
+    # "openai/whisper-tiny",
+    # "openai/whisper-base",
     # "openai/whisper-small",
+    # "openai/whisper-medium",
+    # "openai/whisper-large-v3",
     # "microsoft/wavlm-base-sv",
     # "microsoft/wavlm-base-plus",
     # "microsoft/wavlm-base-plus-sv",
     # "microsoft/wavlm-base-sv",
     # "microsoft/wavlm-base",
     # "microsoft/wavlm-large",
-
-    "openai/whisper-large-v3",
-    "openai/whisper-medium",
-    # "Qwen/Qwen2-Audio-7B"
+    "Qwen/Qwen2-Audio-7B"
 ]
 
 
@@ -33,11 +31,11 @@ cluster_algos = ["Kmeans"]
 pca_n_components_values = [200]
 encode_hidden_layers = [0.25]
 dataset_sizes = [2048]
-tasks = [[VoiceGenderClustering()]]
-tasks_name = ['gender_cluster']
+# tasks = [[VoiceGenderClustering()]]
+# tasks_name = ['gender_cluster']
 
-# tasks = [[CREMADEmotionClustering()]]
-# tasks_name = ['emotion_cluster']
+tasks = [[CREMADEmotionClustering()]]
+tasks_name = ['emotion_cluster']
 
 for i in range(len(tasks)):
     task = tasks[i]
