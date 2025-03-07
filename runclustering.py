@@ -33,10 +33,10 @@ pca_n_components_values = [200, None]
 encode_hidden_layers = [0.25, 0.5, 1]
 dataset_sizes = [512, 1024, 2048]
 tasks = [[VoiceGenderClustering()],[CREMADEmotionClustering()]]
-tasks_name = ['gender','emotion']
+tasks_name = ['gender_clust','emotion_clust']
 
 
-for i in range(len(tasks)-1):
+for i in range(len(tasks)):
     task = tasks[i]
     task_name = tasks_name[i]
     for model_name in model_names:

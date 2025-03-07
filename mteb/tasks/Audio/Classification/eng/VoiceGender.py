@@ -59,17 +59,14 @@ if __name__ == "__main__":
     classification_method = "logReg" #CHANGE TO K_NN IF NEEDED
     encode_kwarg = {"file_path": f"../../../../../new_gender_embeddings/{model_name}/0.5/embeddings.npz",
                     "embed_limit": 512,
-                    "hidden_layer": 6,
                     "test_split": .8,
                     }
-    dataset_size = 224
+    dataset_size = 128
 
     results = evaluation.run(
         model,
         output_folder=f"results_Gender/{classification_method}/{dataset_size}/{model_name}",
         overwrite_results=True,
-        classification_method=classification_method,
-        limit=dataset_size,
         encode_kwargs=encode_kwarg
     )
     print(results)
