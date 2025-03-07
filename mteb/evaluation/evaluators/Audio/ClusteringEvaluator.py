@@ -71,7 +71,7 @@ class AudioClusteringEvaluator(Evaluator):
         self.labels = data["labels"]
         if encode_kwargs["embed_limit"] is not None:
            audio_embeddings = audio_embeddings[:encode_kwargs["embed_limit"]]
-           self.labels = labels[:encode_kwargs["embed_limit"]]
+           self.labels = self.labels[:encode_kwargs["embed_limit"]]
         if self.pca_n_components is not None:
             pca = PCA(n_components=self.pca_n_components)
             print("done",self.pca_n_components)
