@@ -7,4 +7,4 @@ from .ImageClassification import *
 from .ImageMultilabelClassification import *
 from .ImageTextPairClassification import *
 from .VisualSTS import *
-from .ZeroShotClassification import *
+from .ZeroshotClassification import *
